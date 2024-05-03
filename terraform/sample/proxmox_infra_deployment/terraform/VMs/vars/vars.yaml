@@ -1,0 +1,32 @@
+ZONE: 
+  SITE_1:
+    NAME: "SITE_1"
+    PM_API_URL: https://IP_TLS:8006/api2/json
+    VAULT: "toto"
+    VM: 10.10.1.0
+    GW: 10.20.1.254
+    PROXMOX_NODE_NAME: "NODE-1"
+    K8S:
+      IP_PREFIX: 10.20.1
+      MASTER_COUNT: 3
+      WORKER_COUNT: 3
+  SITE_2:
+    NAME: "SITE_2"
+    PM_API_URL: https://IP_PAR:8006/api2/json
+    VM: 10.10.2.0
+    GW: 10.20.2.254
+    PROXMOX_NODE_NAME: "NODE-2"
+    K8S: 
+      IP_PREFIX: 10.20.2
+      MASTER_COUNT: 3
+      WORKER_COUNT: 3
+  SITE_3:
+    NAME: "SITE_3"
+    PM_API_URL: https://IP_LIL:8006/api2/json
+    VM: 10.10.3.0
+    GW: 10.20.3.254
+    PROXMOX_NODE_NAME: "NODE-3"
+    K8S:
+      IP_PREFIX: 10.20.3
+      MASTER_COUNT: 3
+      WORKER_COUNT: 3
