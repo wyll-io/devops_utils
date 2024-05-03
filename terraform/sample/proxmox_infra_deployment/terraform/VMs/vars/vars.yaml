@@ -1,32 +1,43 @@
 ZONE: 
-  SITE_1:
-    NAME: "SITE_1"
-    PM_API_URL: https://IP_TLS:8006/api2/json
+  TEST:
+    NAME: "Test"
+    PM_API_URL: https://pve01.devoups.local:8006/api2/json
     VAULT: "toto"
-    VM: 10.10.1.0
-    GW: 10.20.1.254
-    PROXMOX_NODE_NAME: "NODE-1"
+    VM: 10.66.66.1
+    GW: 10.66.66.254
+    PROXMOX_NODE_NAME: "CBO-IT-S-PVE-1"
     K8S:
-      IP_PREFIX: 10.20.1
+      IP_PREFIX: 10.66.66
       MASTER_COUNT: 3
       WORKER_COUNT: 3
-  SITE_2:
-    NAME: "SITE_2"
-    PM_API_URL: https://IP_PAR:8006/api2/json
-    VM: 10.10.2.0
-    GW: 10.20.2.254
-    PROXMOX_NODE_NAME: "NODE-2"
-    K8S: 
-      IP_PREFIX: 10.20.2
-      MASTER_COUNT: 3
-      WORKER_COUNT: 3
-  SITE_3:
-    NAME: "SITE_3"
-    PM_API_URL: https://IP_LIL:8006/api2/json
-    VM: 10.10.3.0
-    GW: 10.20.3.254
-    PROXMOX_NODE_NAME: "NODE-3"
-    K8S:
-      IP_PREFIX: 10.20.3
-      MASTER_COUNT: 3
-      WORKER_COUNT: 3
+  # TLS:
+  #   NAME: "TLS"
+  #   PM_API_URL: https://IP_TLS:8006/api2/json
+  #   VAULT: "toto"
+  #   VM: 10.10.1.0
+  #   GW: 10.20.1.254
+  #   PROXMOX_NODE_NAME: "TLS-NODE"
+  #   K8S:
+  #     IP_PREFIX: 10.20.1
+  #     MASTER_COUNT: 3
+  #     WORKER_COUNT: 3
+  # PAR:
+  #   NAME: "PAR"
+  #   PM_API_URL: https://IP_PAR:8006/api2/json
+  #   VM: 10.10.2.0
+  #   GW: 10.20.2.254
+  #   PROXMOX_NODE_NAME: "PAR-NODE"
+  #   K8S: 
+  #     IP_PREFIX: 10.20.2
+  #     MASTER_COUNT: 3
+  #     WORKER_COUNT: 3
+  # LIL:
+  #   NAME: "LIL"
+  #   PM_API_URL: https://IP_LIL:8006/api2/json
+  #   VM: 10.10.3.0
+  #   GW: 10.20.3.254
+  #   PROXMOX_NODE_NAME: "LIL-NODE"
+  #   K8S:
+  #     IP_PREFIX: 10.20.3
+  #     MASTER_COUNT: 3
+  #     WORKER_COUNT: 3

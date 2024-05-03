@@ -6,5 +6,9 @@ terraform {
       source  = "Telmate/proxmox"
       version = "3.0.1-rc1"
     }
+    # ansible = {
+    #   version = "~> 1.3.0"
+    #   source  = "ansible/ansible"
+    # }
   }
 }
