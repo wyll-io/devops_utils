@@ -1,4 +1,15 @@
-ZONE: 
+GENERAL:
+# Provider Proxmox
+  PM_API_URL: https://pve01.devoups.local:8006/api2/json
+  PM_API_TOKEN_ID: "brice@pve!terraform_token"
+  PM_API_TOKEN_SECRET: "0aa45740-d05a-4778-88bf-2170285567cc"
+  PM_TLS_INSECURE: true
+  PM_DEBUG: true
+  SUBNET_MASK: "16"
+  VM_SSH_USER: "adm_eurofiber"
+  VM_SSH_KEYS: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4MLfARKh8R7Pa/mPlUCwnEU0HM2OkrxgKb2tDLrq4Y"
+
+NODES: 
   TEST:
     NAME: "Test"
     PM_API_URL: https://pve01.devoups.local:8006/api2/json
@@ -10,34 +21,3 @@ ZONE:
       IP_PREFIX: 10.66.66
       MASTER_COUNT: 3
       WORKER_COUNT: 3
-  # TLS:
-  #   NAME: "TLS"
-  #   PM_API_URL: https://IP_TLS:8006/api2/json
-  #   VAULT: "toto"
-  #   VM: 10.10.1.0
-  #   GW: 10.20.1.254
-  #   PROXMOX_NODE_NAME: "TLS-NODE"
-  #   K8S:
-  #     IP_PREFIX: 10.20.1
-  #     MASTER_COUNT: 3
-  #     WORKER_COUNT: 3
-  # PAR:
-  #   NAME: "PAR"
-  #   PM_API_URL: https://IP_PAR:8006/api2/json
-  #   VM: 10.10.2.0
-  #   GW: 10.20.2.254
-  #   PROXMOX_NODE_NAME: "PAR-NODE"
-  #   K8S: 
-  #     IP_PREFIX: 10.20.2
-  #     MASTER_COUNT: 3
-  #     WORKER_COUNT: 3
-  # LIL:
-  #   NAME: "LIL"
-  #   PM_API_URL: https://IP_LIL:8006/api2/json
-  #   VM: 10.10.3.0
-  #   GW: 10.20.3.254
-  #   PROXMOX_NODE_NAME: "LIL-NODE"
-  #   K8S:
-  #     IP_PREFIX: 10.20.3
-  #     MASTER_COUNT: 3
-  #     WORKER_COUNT: 3

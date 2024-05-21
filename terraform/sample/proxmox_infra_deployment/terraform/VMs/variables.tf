@@ -1,24 +1,25 @@
 locals {
-  ZONES = yamldecode(file("./vars/vars.yaml"))["ZONE"]
+  NODES = yamldecode(file("./vars/vars.yaml"))["NODES"]
+  GENERAL = yamldecode(file("./vars/vars.yaml"))["GENERAL"]
   master_provision = flatten([
-    for zone in local.ZONES : [
-      for instance_count in range(1, zone.K8S.MASTER_COUNT + 1) : {
-        site         = zone.NAME,
-        master_name  = "${zone.NAME}-k-master-0${instance_count}",
-        proxmox_node = zone.PROXMOX_NODE_NAME,
-        ip           = "${zone.K8S.IP_PREFIX}.${instance_count}",
-        ip_param     = "${var.vm_subnet_mask},gw=${zone.GW}"
+    for node in local.NODES : [
+      for instance_count in range(1, node.K8S.MASTER_COUNT + 1) : {
+        site         = node.NAME,
+        master_name  = "${node.NAME}-k-master-0${instance_count}",
+        proxmox_node = node.PROXMOX_NODE_NAME,
+        ip           = "${node.K8S.IP_PREFIX}.${instance_count}",
+        ip_param     = "${var.vm_subnet_mask},gw=${node.GW}"
       }
     ]
   ])
   worker_provision = flatten([
-    for zone in local.ZONES : [
-      for instance_count in range(1, zone.K8S.WORKER_COUNT + 1) : {
-        site         = zone.NAME,
-        worker_name  = "${zone.NAME}-k-worker-${instance_count}",
-        proxmox_node = zone.PROXMOX_NODE_NAME
-        ip           = "${zone.K8S.IP_PREFIX}.5${instance_count}",
-        ip_param     = "${var.vm_subnet_mask},gw=${zone.GW}"
+    for node in local.NODES : [
+      for instance_count in range(1, node.K8S.WORKER_COUNT + 1) : {
+        site         = node.NAME,
+        worker_name  = "${node.NAME}-k-worker-${instance_count}",
+        proxmox_node = node.PROXMOX_NODE_NAME
+        ip           = "${node.K8S.IP_PREFIX}.5${instance_count}",
+        ip_param     = "${var.vm_subnet_mask},gw=${node.GW}"
       }
     ]
   ])

@@ -14,14 +14,14 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   cloudinit_cdrom_storage = var.vm_storage_class
   agent                   = 1
   nameserver              = var.vm_nameserver
-  ssh_user                = var.kubernetes_master_node.master.ssh_user
   scsihw                  = "virtio-scsi-pci"
   target_node             = each.value.proxmox_node
   ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
   clone                   = "debian-base"
   define_connection_info  = true
-  sshkeys                 = var.vm_ssh_keys
-  ssh_private_key         = var.vm_ssh_keys
+  ssh_user                = local.GENERAL.VM_SSH_USER
+  sshkeys                 = local.GENERAL.VM_SSH_KEYS
+  ssh_private_key         = local.GENERAL.VM_SSH_KEYS
 
 
   disks {
@@ -45,6 +45,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
     update = "5m"
     delete = "5m"
   }
+
 }
 
 resource "proxmox_vm_qemu" "kubernetes_workers" {
@@ -62,14 +63,14 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   cloudinit_cdrom_storage = var.vm_storage_class
   agent                   = 1
   nameserver              = var.vm_nameserver
-  ssh_user                = var.kubernetes_worker_node.worker.ssh_user
   scsihw                  = "virtio-scsi-pci"
   target_node             = each.value.proxmox_node
   ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
   clone                   = "debian-base"
   define_connection_info  = true
-  sshkeys                 = var.vm_ssh_keys
-  ssh_private_key         = var.vm_ssh_keys
+  ssh_user                = local.GENERAL.VM_SSH_USER
+  sshkeys                 = local.GENERAL.VM_SSH_KEYS
+  ssh_private_key         = local.GENERAL.VM_SSH_KEYS
 
   disks {
     scsi {
