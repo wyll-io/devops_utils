@@ -1,24 +1,26 @@
 locals {
-#  vars_path    = "."
-  ZONES       = yamldecode(file("./vars/vars.yaml"))["ZONE"]
+  NODES   = yamldecode(file("./vars/vars.yaml"))["NODES"]
+  GENERAL = yamldecode(file("./vars/vars.yaml"))["GENERAL"]
   master_provision = flatten([
-    for zone in local.ZONES: [
-      for instance_count in range(zone.K8S.MASTER_COUNT) : { 
-        site = zone.NAME,
-        master_name = "${zone.NAME}-${instance_count}" ,
-        proxmox_node = zone.PROXMOX_NODE_NAME
-        ip = "${zone.K8S.IP_PREFIX}.${instance_count}/${var.vm_subnet_mask},gw=${zone.GW}"
-        }
+    for node in local.NODES : [
+      for instance_count in range(1, node.K8S.MASTER_COUNT + 1) : {
+        site         = node.NAME,
+        master_name  = "${node.NAME}-k-master-0${instance_count}",
+        proxmox_node = node.PROXMOX_NODE_NAME,
+        ip           = "${node.K8S.IP_PREFIX}.${instance_count}",
+        ip_param     = "${var.vm_subnet_mask},gw=${node.GW}"
+      }
     ]
   ])
   worker_provision = flatten([
-    for zone in local.ZONES: [
-      for instance_count in range(zone.K8S.WORKER_COUNT) : { 
-        site = zone.NAME,
-        worker_name = "${zone.NAME}-${instance_count}" ,
-        proxmox_node = zone.PROXMOX_NODE_NAME
-        ip = "${zone.K8S.IP_PREFIX}.${instance_count}/${var.vm_subnet_mask},gw=${zone.GW}"
-        }
+    for node in local.NODES : [
+      for instance_count in range(1, node.K8S.WORKER_COUNT + 1) : {
+        site         = node.NAME,
+        worker_name  = "${node.NAME}-k-worker-${instance_count}",
+        proxmox_node = node.PROXMOX_NODE_NAME
+        ip           = "${node.K8S.IP_PREFIX}.5${instance_count}",
+        ip_param     = "${var.vm_subnet_mask},gw=${node.GW}"
+      }
     ]
   ])
 }
@@ -26,32 +28,6 @@ locals {
 ######################################################
 ######################  PROXMOX  #####################
 ######################################################
-variable "pm_api_url" {
-  type        = string
-  description = "url d'acces api proxmox"
-}
-
-variable "pm_api_token_id" {
-  type        = string
-  description = "token id username proxmox"
-}
-
-variable "pm_api_token_secret" {
-  type        = string
-  description = "secret user api promox"
-}
-
-variable "pm_debug" {
-  type        = bool
-  description = "debug mode"
-  default     = false
-}
-
-variable "pm_tls_insecure" {
-  type        = bool
-  description = "insecure TLS"
-  default     = false
-}
 
 ######################################################
 ################  Default VM values  #################
@@ -72,12 +48,7 @@ variable "vm_os_type" {
 variable "vm_storage_class" {
   type        = string
   description = "Storage class"
-  default     = "instances"
-}
-
-variable "vm_ssh_keys" {
-  type        = string
-  description = "SSH Keys"
+  default     = "datastore"
 }
 
 variable "vm_subnet_mask" {
@@ -115,7 +86,7 @@ variable "kubernetes_master_node" {
       memory_mb    = "4096",
       disk_size_gb = "20",
       ipconfig0    = ""
-      ssh_user     = "adm-eurofiber"
+      ssh_user     = "adm-test"
     }
   }
 }
@@ -145,7 +116,8 @@ variable "kubernetes_worker_node" {
       memory_mb    = "16384",
       disk_size_gb = "20",
       ipconfig0    = ""
-      ssh_user     = "adm-eurofiber"
+      ssh_user     = "adm-test"
     }
   }
 }
+
