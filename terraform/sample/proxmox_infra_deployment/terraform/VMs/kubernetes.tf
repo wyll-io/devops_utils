@@ -4,30 +4,30 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
     for provisionning in local.master_provision : "${provisionning.master_name}" => provisionning
   })
 
-  name                    = each.value.master_name
-  desc                    = var.kubernetes_master_node.master.description
-  ci_wait                 = 60
-  cores                   = var.kubernetes_master_node.master.cpu_core
-  sockets                 = var.kubernetes_master_node.master.cpu_socket
-  memory                  = var.kubernetes_master_node.master.memory_mb
-  os_type                 = var.vm_os_type
-  full_clone              = true
-  cloudinit_cdrom_storage = var.vm_storage_class
-  agent                   = 1
-  nameserver              = var.vm_nameserver
-  scsihw                  = "virtio-scsi-pci"
-  target_node             = each.value.proxmox_node
-  ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                   = "debian-base-pkr"
-  define_connection_info  = true
-  ssh_user                = local.GENERAL.VM_SSH_USER
-  sshkeys                 = local.GENERAL.VM_SSH_KEYS
-  ssh_private_key         = local.GENERAL.VM_SSH_KEYS
+  name                   = each.value.master_name
+  desc                   = var.kubernetes_master_node.master.description
+  ci_wait                = 60
+  vcpus                  = var.kubernetes_master_node.master.cpu_core
+  cores                  = var.kubernetes_master_node.master.cpu_core
+  sockets                = var.kubernetes_master_node.master.cpu_socket
+  memory                 = var.kubernetes_master_node.master.memory_mb
+  os_type                = var.vm_os_type
+  full_clone             = true
+  agent                  = 1
+  nameserver             = var.vm_nameserver
+  scsihw                 = "virtio-scsi-pci"
+  target_node            = each.value.proxmox_node
+  ipconfig0              = "ip=${each.value.ip}/${each.value.ip_param}"
+  clone                  = "debian-base-pkr"
+  define_connection_info = true
+  ssh_user               = local.GENERAL.VM_SSH_USER
+  sshkeys                = local.GENERAL.VM_SSH_KEYS
+  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
 
 
   disks {
-    scsi {
-      scsi0 {
+    virtio {
+      virtio0 {
         disk {
           size    = var.kubernetes_master_node.master.disk_size_gb
           storage = var.vm_storage_class
@@ -54,29 +54,29 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   for_each = tomap({
     for provisionning in local.worker_provision : "${provisionning.worker_name}" => provisionning
   })
-  name                    = each.value.worker_name
-  desc                    = var.kubernetes_worker_node.worker.description
-  ci_wait                 = 60
-  cores                   = var.kubernetes_worker_node.worker.cpu_core
-  sockets                 = var.kubernetes_worker_node.worker.cpu_socket
-  memory                  = var.kubernetes_worker_node.worker.memory_mb
-  os_type                 = var.vm_os_type
-  full_clone              = true
-  cloudinit_cdrom_storage = var.vm_storage_class
-  agent                   = 1
-  nameserver              = var.vm_nameserver
-  scsihw                  = "virtio-scsi-pci"
-  target_node             = each.value.proxmox_node
-  ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                   = "debian-base-pkr"
-  define_connection_info  = true
-  ssh_user                = local.GENERAL.VM_SSH_USER
-  sshkeys                 = local.GENERAL.VM_SSH_KEYS
-  ssh_private_key         = local.GENERAL.VM_SSH_KEYS
+  name                   = each.value.worker_name
+  desc                   = var.kubernetes_worker_node.worker.description
+  ci_wait                = 60
+  vcpus                  = var.kubernetes_master_node.master.cpu_core
+  cores                  = var.kubernetes_worker_node.worker.cpu_core
+  sockets                = var.kubernetes_worker_node.worker.cpu_socket
+  memory                 = var.kubernetes_worker_node.worker.memory_mb
+  os_type                = var.vm_os_type
+  full_clone             = true
+  agent                  = 1
+  nameserver             = var.vm_nameserver
+  scsihw                 = "virtio-scsi-pci"
+  target_node            = each.value.proxmox_node
+  ipconfig0              = "ip=${each.value.ip}/${each.value.ip_param}"
+  clone                  = "debian-base-pkr"
+  define_connection_info = true
+  ssh_user               = local.GENERAL.VM_SSH_USER
+  sshkeys                = local.GENERAL.VM_SSH_KEYS
+  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
 
   disks {
-    scsi {
-      scsi0 {
+    virtio {
+      virtio0 {
         disk {
           size    = var.kubernetes_worker_node.worker.disk_size_gb
           storage = var.vm_storage_class
@@ -98,20 +98,21 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
 
 
 resource "local_file" "ansible_inventory" {
-  filename = "./ansible/playbooks/kubespray/inventory/test/inventory.ini"
-  content = templatefile("../templates/inventory.tpl", {
+  filename = "./ansible/playbooks/kubespray/inventory/mucluster/inventory.ini"
+  content = templatefile("./templates/inventory.tpl", {
     master_nodes = [for vm in proxmox_vm_qemu.kubernetes_masters : vm.ssh_host]
     worker_nodes = [for vm in proxmox_vm_qemu.kubernetes_workers : vm.ssh_host]
 
   })
 }
 
-resource "null_resource" "kubernetes_clustert_creation" {
+resource "null_resource" "kubernetes_cluster_creation" {
   depends_on = [local_file.ansible_inventory, proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
   triggers = {
     kubernetes_cluster = local_file.ansible_inventory.content_md5
   }
   provisioner "local-exec" {
+    working_dir = "./ansible/playbooks/kubespray/"
     environment = {
       ANSIBLE_HOST_KEY_CHECKING = "False"
       ANSIBLE_USER              = local.GENERAL.VM_SSH_USER
@@ -121,15 +122,6 @@ resource "null_resource" "kubernetes_clustert_creation" {
       ANSIBLE_BECOME_USER       = "root"
       ANSIBLE_BECOME_PASSWORD   = random_password.root_password.result
     }
-    command = <<-EOF
-      ansible-playbook -i ./ansible/playbooks/kubespray/inventory/test/inventory.ini --extra-vars \
-      "ansible_user=$ANSIBLE_USER \
-      ansible_password=$ANSIBLE_SSH_PASS \
-      ansible_become_user=$ANSIBLE_BECOME_USER \
-      ansible_become_password=$ANSIBLE_BECOME_PASSWORD" \
-      --become --become-user=root \
-      ./ansible/playbooks/kubespray/cluster.yml"
-      EOF
+    command = "ansible-playbook -i inventory/mycluster/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root cluster.yml"
   }
-
 }

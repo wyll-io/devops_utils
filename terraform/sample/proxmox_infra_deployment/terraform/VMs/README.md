@@ -34,6 +34,7 @@ Le projet documenté ici se concentre sur l'orchestration de déploiements de VM
 Pour mettre en œuvre les configurations décrites, les prérequis suivants doivent être satisfaits :
 
 - **Terraform** : Version 0.12 ou supérieure installée sur votre machine de contrôle.
+- **Packer** : Version 1.10 ou supérieure installée sur votre machine de contrôle.
 - **Ansible** : Version 2.9 ou supérieure installée sur votre machine de contrôle.
 - **Python** : Version 3.6 ou supérieure installée sur votre machine de contrôle. De plus, l'ensemble des dépendances et versions indiquées dans le fichier `./VMs/ansible/playbooks/kubespray/requirements.txt` doivent être satisfaites. Pour se faire, lancer la commande `pip install -r ./ansible/playbooks/kubespray/requirements.txt`
 - **Proxmox VE** : Accès administratif au serveur Proxmox VE où les VMs seront déployées.
@@ -45,16 +46,22 @@ Pour mettre en œuvre les configurations décrites, les prérequis suivants doiv
 Ce schéma illustre comment Terraform interagit avec l'API Proxmox pour provisionner des ressources de manière automatisée :
 
 ```mermaid
-flowchart LR;
+flowchart TB;
 A[Terraform files] -->|Merge Request| B(GitLab Repository);
 B -->|Trigger| C{GitLab_CI-CD};
 C -->|Start| CA([Docker terraform container])
 CA -->|Run| D[/Terraform Commands/];
-D --> |Run| DA[/Ansible Commands\]
+D --> |Run| DA[/Ansible Commands\];
+D --> |Run| DB[/Packer Commands\];
+DB --> |Run| DAA[/Ansible Commands\];
 D -->|Request| E(Proxmox_API);
 E --> F[[Proxmox_VE_Hypervisor]];
 F -->|Provision| G((Provisioned_VMs));
 DA -->|Install and configure kubernetes cluster| G
+DAA --> |Create|DBA{Packer Image}
+DBA --> |Is stored on|F
+DBA --> |Is used to provision|G
+F --> |Use| DBA
 
 ```
 
@@ -70,9 +77,9 @@ Le bloc `locals` dans Terraform permet de définir des variables locales utilis�
 
 ## Variables Locales Définies
 
-### `ZONES`
+### `NODES`
 
-- **Description** : Charge et parse le fichier YAML `vars.yaml` pour extraire la liste des zones.
+- **Description** : Charge et parse le fichier YAML `vars.yaml` pour extraire la liste des nodes.
 - **Type** : Carte (Map) d'objets
 - **Source** : Fichier `vars.yaml`
 - **Exemple de Contenu** :

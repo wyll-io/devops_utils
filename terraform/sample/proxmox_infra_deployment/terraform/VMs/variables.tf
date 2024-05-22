@@ -28,6 +28,32 @@ locals {
 ######################################################
 ######################  PROXMOX  #####################
 ######################################################
+# variable "pm_api_url" {
+#   type        = string
+#   description = "url d'acces api proxmox"
+# }
+
+# variable "pm_api_token_id" {
+#   type        = string
+#   description = "token id username proxmox"
+# }
+
+# variable "pm_api_token_secret" {
+#   type        = string
+#   description = "secret user api promox"
+# }
+
+# variable "pm_debug" {
+#   type        = bool
+#   description = "debug mode"
+#   default     = false
+# }
+
+# variable "pm_tls_insecure" {
+#   type        = bool
+#   description = "insecure TLS"
+#   default     = false
+# }
 
 ######################################################
 ################  Default VM values  #################
@@ -50,6 +76,11 @@ variable "vm_storage_class" {
   description = "Storage class"
   default     = "datastore"
 }
+
+# variable "vm_ssh_keys" {
+#   type        = string
+#   description = "SSH Keys"
+# }
 
 variable "vm_subnet_mask" {
   type        = string
@@ -86,7 +117,7 @@ variable "kubernetes_master_node" {
       memory_mb    = "4096",
       disk_size_gb = "20",
       ipconfig0    = ""
-      ssh_user     = "adm-test"
+      ssh_user     = "adm-mycluster"
     }
   }
 }
@@ -116,8 +147,26 @@ variable "kubernetes_worker_node" {
       memory_mb    = "16384",
       disk_size_gb = "20",
       ipconfig0    = ""
-      ssh_user     = "adm-test"
+      ssh_user     = "adm-mycluster"
     }
   }
 }
+######################################################
+#######################  VAULT  ######################
+######################################################
 
+variable "vault_cluster" {
+  type = map(object({
+    name         = string
+    description  = string
+    host         = string
+    clone        = string
+    cpu_core     = string
+    cpu_socket   = string
+    memory_mb    = string
+    disk_size_gb = string
+    ipconfig0    = string
+    ssh_user     = string
+  }))
+  description = "all the VM for the Vault cluster"
+}

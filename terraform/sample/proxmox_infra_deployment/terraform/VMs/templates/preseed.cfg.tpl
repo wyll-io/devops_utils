@@ -54,13 +54,13 @@ d-i mirror/http/proxy string
 
 ### Account setup
 d-i passwd/root-login boolean true
-d-i passwd/root-password password {{ root_password }}
-d-i passwd/root-password-again password {{ root_password }}
+d-i passwd/root-password password ${root_password}
+d-i passwd/root-password-again password ${root_password}
 d-i passwd/make-user boolean true
-d-i passwd/user-fullname string {{ ssh_username }}
-d-i passwd/username string {{ ssh_username }} 
-d-i passwd/user-password password {{ user_password }}
-d-i passwd/user-password-again password {{ user_password }}
+d-i passwd/user-fullname string ${ssh_username}
+d-i passwd/username string ${ssh_username} 
+d-i passwd/user-password password ${user_password}
+d-i passwd/user-password-again password ${user_password}
 
 ### Clock and time zone setup
 d-i clock-setup/utc boolean true
@@ -94,11 +94,15 @@ d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman-auto/choose_recipe select atomic
 
+d-i partman-basicfilesystems/no_swap boolean true
+
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
-d-i partman/mount_style select uuid
+#d-i partman/mount_style select uuid
+d-i partman-md/confirm boolean true
+
 
 ### Base system installation
 d-i apt-setup/cdrom/set-first boolean fals
@@ -131,14 +135,14 @@ d-i pkgsel/upgrade select full-upgrade
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean false
 
-d-i grub-installer/bootdev  string /dev/sda
+#d-i grub-installer/bootdev  string /dev/sda
 d-i grub-installer/bootdev  string default
 
 
 d-i preseed/late_command string \
     in-target sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config; \
     in-target sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config; \
-    in-target /bin/bash -c 'usermod -aG sudo {{ ssh_username }}';
+    in-target /bin/bash -c 'usermod -aG sudo ${ssh_username}';
 
 d-i finish-install/reboot_in_progress note
 
