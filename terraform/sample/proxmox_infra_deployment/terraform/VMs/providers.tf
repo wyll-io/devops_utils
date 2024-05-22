@@ -10,7 +10,5 @@ provider "kubernetes" {
   config_path = "~/.kube/config"
 }
 
-# provider "ansible" {
-
-
-# }
+provider "random" {
+}

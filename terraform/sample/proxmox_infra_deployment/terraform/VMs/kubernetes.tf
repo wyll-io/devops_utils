@@ -1,4 +1,5 @@
 resource "proxmox_vm_qemu" "kubernetes_masters" {
+  depends_on = [null_resource.packer_image_creation]
   for_each = tomap({
     for provisionning in local.master_provision : "${provisionning.master_name}" => provisionning
   })
@@ -17,7 +18,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   scsihw                  = "virtio-scsi-pci"
   target_node             = each.value.proxmox_node
   ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                   = "debian-base"
+  clone                   = "debian-base-pkr"
   define_connection_info  = true
   ssh_user                = local.GENERAL.VM_SSH_USER
   sshkeys                 = local.GENERAL.VM_SSH_KEYS
@@ -49,6 +50,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
 }
 
 resource "proxmox_vm_qemu" "kubernetes_workers" {
+  depends_on = [null_resource.packer_image_creation]
   for_each = tomap({
     for provisionning in local.worker_provision : "${provisionning.worker_name}" => provisionning
   })
@@ -66,7 +68,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   scsihw                  = "virtio-scsi-pci"
   target_node             = each.value.proxmox_node
   ipconfig0               = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                   = "debian-base"
+  clone                   = "debian-base-pkr"
   define_connection_info  = true
   ssh_user                = local.GENERAL.VM_SSH_USER
   sshkeys                 = local.GENERAL.VM_SSH_KEYS
@@ -112,14 +114,22 @@ resource "null_resource" "kubernetes_clustert_creation" {
   provisioner "local-exec" {
     environment = {
       ANSIBLE_HOST_KEY_CHECKING = "False"
-      ANSIBLE_USER              = "adm_test"
-      ANSIBLE_SSH_PASS          = "test"
+      ANSIBLE_USER              = local.GENERAL.VM_SSH_USER
+      ANSIBLE_SSH_PASS          = random_password.user_password.result
       ANSIBLE_BECOME            = "yes"
       ANSIBLE_BECOME_METHOD     = "su"
       ANSIBLE_BECOME_USER       = "root"
-      ANSIBLE_BECOME_PASSWORD   = "toor"
+      ANSIBLE_BECOME_PASSWORD   = random_password.root_password.result
     }
-    command = "ansible-playbook -i ./ansible/playbooks/kubespray/inventory/test/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root ./ansible/playbooks/kubespray/cluster.yml"
+    command = <<-EOF
+      ansible-playbook -i ./ansible/playbooks/kubespray/inventory/test/inventory.ini --extra-vars \
+      "ansible_user=$ANSIBLE_USER \
+      ansible_password=$ANSIBLE_SSH_PASS \
+      ansible_become_user=$ANSIBLE_BECOME_USER \
+      ansible_become_password=$ANSIBLE_BECOME_PASSWORD" \
+      --become --become-user=root \
+      ./ansible/playbooks/kubespray/cluster.yml"
+      EOF
   }
 
 }

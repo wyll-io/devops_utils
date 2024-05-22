@@ -1,5 +1,5 @@
 locals {
-  NODES = yamldecode(file("./vars/vars.yaml"))["NODES"]
+  NODES   = yamldecode(file("./vars/vars.yaml"))["NODES"]
   GENERAL = yamldecode(file("./vars/vars.yaml"))["GENERAL"]
   master_provision = flatten([
     for node in local.NODES : [
@@ -28,32 +28,6 @@ locals {
 ######################################################
 ######################  PROXMOX  #####################
 ######################################################
-variable "pm_api_url" {
-  type        = string
-  description = "url d'acces api proxmox"
-}
-
-variable "pm_api_token_id" {
-  type        = string
-  description = "token id username proxmox"
-}
-
-variable "pm_api_token_secret" {
-  type        = string
-  description = "secret user api promox"
-}
-
-variable "pm_debug" {
-  type        = bool
-  description = "debug mode"
-  default     = false
-}
-
-variable "pm_tls_insecure" {
-  type        = bool
-  description = "insecure TLS"
-  default     = false
-}
 
 ######################################################
 ################  Default VM values  #################
@@ -75,11 +49,6 @@ variable "vm_storage_class" {
   type        = string
   description = "Storage class"
   default     = "datastore"
-}
-
-variable "vm_ssh_keys" {
-  type        = string
-  description = "SSH Keys"
 }
 
 variable "vm_subnet_mask" {
@@ -151,22 +120,4 @@ variable "kubernetes_worker_node" {
     }
   }
 }
-######################################################
-#######################  VAULT  ######################
-######################################################
 
-variable "vault_cluster" {
-  type = map(object({
-    name         = string
-    description  = string
-    host         = string
-    clone        = string
-    cpu_core     = string
-    cpu_socket   = string
-    memory_mb    = string
-    disk_size_gb = string
-    ipconfig0    = string
-    ssh_user     = string
-  }))
-  description = "all the VM for the Vault cluster"
-}
