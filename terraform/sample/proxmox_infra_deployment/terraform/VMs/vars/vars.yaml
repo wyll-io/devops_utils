@@ -1,23 +1,36 @@
 GENERAL:
-# Provider Proxmox
-  PM_API_URL: https://pve01.devoups.local:8006/api2/json
-  PM_API_TOKEN_ID: "brice@pve!terraform_token"
-  PM_API_TOKEN_SECRET: "0aa45740-d05a-4778-88bf-2170285567cc"
+  # URL de l'API Proxmox
+  PM_API_URL: https://my_proxmox_api_url:8006/api2/json
+  # Identifiant du token API pour l'authentification
+  PM_API_TOKEN_ID: "<your proxmox api token id>"
+  # Secret du token API pour l'authentification
+  PM_API_TOKEN_SECRET: "<your proxmox api token>"
+  # Accepter les certificats TLS non sécurisés (auto-signés)
   PM_TLS_INSECURE: true
+  # Activer le mode debug pour le fournisseur Proxmox
   PM_DEBUG: true
+  # Masque de sous-réseau pour les adresses IP des VMs
   SUBNET_MASK: "16"
-  VM_SSH_USER: "adm_eurofiber"
-  VM_SSH_KEYS: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4MLfARKh8R7Pa/mPlUCwnEU0HM2OkrxgKb2tDLrq4Y"
+  # Utilisateur SSH pour la connexion aux VMs
+  VM_SSH_USER: "<your ssh user>"
+  # Clé SSH publique pour la connexion aux VMs
+  VM_SSH_KEYS: "<your ssh key>"
 
 NODES: 
   TEST:
+    # Nom du nœud
     NAME: "Test"
-    PM_API_URL: https://pve01.devoups.local:8006/api2/json
-    VAULT: "toto"
-    VM: 10.66.66.1
+    # URL de l'API Proxmox pour ce nœud
+    PM_API_URL: https://my_proxmox_api_url:8006/api2/json
+    # Passerelle par défaut pour les VMs
     GW: 10.66.66.254
-    PROXMOX_NODE_NAME: "CBO-IT-S-PVE-1"
+    # Nom du nœud Proxmox
+    PROXMOX_NODE_NAME: "MY_PROXMOX_NODE"
+    # Configuration spécifique à Kubernetes
     K8S:
+      # Préfixe d'adresse IP pour les nœuds Kubernetes
       IP_PREFIX: 10.66.66
-      MASTER_COUNT: 3
+      # Nombre de nœuds maîtres
+      MASTER_COUNT: 3      
+      # Nombre de nœuds de travail
       WORKER_COUNT: 3

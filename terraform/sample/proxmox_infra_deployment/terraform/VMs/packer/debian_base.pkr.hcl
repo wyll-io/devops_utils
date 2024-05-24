@@ -57,9 +57,10 @@ source "proxmox-iso" "debian-cloud" {
 
   scsi_controller = "virtio-scsi-pci"
 
-  cores   = "2"
-  sockets = "1"
-  memory  = "2048"
+  cpu_type = "host"
+  cores    = "2"
+  sockets  = "1"
+  memory   = "2048"
 
   cloud_init              = true
   cloud_init_storage_pool = "datastore"
@@ -120,25 +121,4 @@ build {
   sources = [
     "source.proxmox-iso.debian-cloud"
   ]
-
-  provisioner "shell" {
-    inline = ["cloud-init status --wait"]
-  }
-
-  provisioner "shell" {
-    execute_command = "echo -e '<user>' | sudo -S -E bash '{{ .Path }}'"
-    inline = [
-      "echo 'Clean'",
-      "sudo rm /etc/ssh/ssh_host_*",
-      "sudo truncate -s 0 /etc/machine-id",
-      "sudo apt -y autoremove --purge",
-      "sudo apt -y clean",
-      "sudo apt -y autoclean",
-      "sudo cloud-init clean",
-      "sudo rm -f /etc/cloud/cloud.cfg.d/subiquity-disable-cloudinit-networking.cfg",
-      "sudo rm -f /etc/netplan/00-installer-config.yaml",
-      "sudo sync",
-      "echo 'Done Stage: Provisioning the VM Template for Cloud-Init Integration in Proxmox'"
-    ]
-  }
 }

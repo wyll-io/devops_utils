@@ -100,6 +100,35 @@ Ajoutez les configurations des nœuds sous la section `NODES`. Chaque nœud doit
     terraform apply
     ```
 
+## Utilisation avec un container Terraform
+
+### Construire l'Image Docker :
+
+```sh
+cd docker
+docker build -t terraform-container
+```
+
+### Exécuter le Conteneur :
+
+```sh
+docker run --rm terraform-container
+```
+Cette commande affichera la version de Terraform pour vérifier que tout est correctement configuré.
+
+### Initialiser et Appliquer Terraform
+
+1. **Initialiser Terraform** :
+
+    ```bash
+    docker run --rm -v $(pwd)/:/workspace -w /workspace terraform-container init
+    ```
+
+2. **Appliquer la Configuration** :
+
+    ```bash
+    docker run --rm --network host -v $(pwd)/:/workspace -w /workspace terraform-container apply --auto-approve
+    ```
 Cette commande provisionnera les VMs sur Proxmox en utilisant les paramètres définis dans le fichier YAML.
 
 ### Conclusion
