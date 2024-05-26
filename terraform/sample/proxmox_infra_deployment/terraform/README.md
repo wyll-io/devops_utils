@@ -8,6 +8,14 @@ Voici une documentation complète expliquant comment compléter et utiliser ce f
 
 Ce guide explique comment configurer et utiliser un fichier YAML pour définir les paramètres nécessaires à la création d'un cluster Kubernetes sur une infrastructure Proxmox en utilisant Terraform. Les informations du fichier `vars/vars.yaml` seront utilisées par Terraform pour provisionner les machines virtuelles et configurer le cluster Kubernetes.
 
+## Prérequis
+
+Pour mettre en œuvre les configurations décrites, les prérequis suivants doivent être satisfaits :
+
+- **Proxmox VE** : Accès administratif au serveur Proxmox VE où les VMs seront déployées. Le détail de la configuration du serveur proxmox est indiqué dans le fichier [la documentation dédiée](./docs/proxmox_role_guide.md)
+- **Connectivité** : Accès réseau approprié pour permettre à Terraform de communiquer avec l'API de Proxmox.
+- **Clés d'API** : Token API Proxmox nécessaire pour l'authentification.
+
 ## Structure du Fichier  `vars/vars.yaml`
 
 Le fichier  `vars/vars.yaml` est divisé en deux sections principales : `GENERAL` et `NODES`. La section `GENERAL` contient des paramètres globaux pour le fournisseur Proxmox, tandis que la section `NODES` contient les informations spécifiques à chaque nœud du cluster Kubernetes.
@@ -74,7 +82,7 @@ NODES:
       WORKER_COUNT: 3
 ```
 
-## Compléter le Fichier YAML
+## Compléter le Fichier  `vars/vars.yaml`
 
 ### Étape 1: Définir les Paramètres Globaux
 
@@ -84,23 +92,83 @@ Remplissez les valeurs dans la section `GENERAL` avec les informations de votre 
 
 Ajoutez les configurations des nœuds sous la section `NODES`. Chaque nœud doit avoir un nom unique et les paramètres spécifiques à ce nœud, y compris les adresses IP, la passerelle, et les informations spécifiques à Kubernetes.
 
-## Utilisation avec Terraform
+## Configuration des Noeuds
 
-### Initialiser et Appliquer Terraform
+Les éléments de configurations des noeuds master ou worker peuvent être mis a jour en éditant le fichier `terraform.tfvars`. Les valeurs renseignées par défauts suffiront dans une majorité de cas.
+kubernetes_masters_node:
 
-1. **Initialiser Terraform** :
+```sh
+# Configuration des noeuds master
+kubernetes_masters_node = {
+  "master" : {
+    # Nom de la machine virtuelle (VM) des maîtres Kubernetes.
+    name         = "k8s-master",
+    # Description de la configuration du maître Kubernetes.
+    description  = "Kubernetes Master Configuration",
+    # Hôte Proxmox où la VM sera créée. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    host         = "",
+    # Nom du template de base utilisé pour cloner la VM.
+    clone        = "debian-base-pkr",
+    # Nombre de cœurs CPU attribués à la VM.
+    cpu_core     = "2",
+    # Nombre de sockets CPU attribués à la VM.
+    cpu_socket   = "2",
+    # Quantité de mémoire (en Mo) attribuée à la VM.
+    memory_mb    = "4096",
+    # Taille du disque (en Go) attribué à la VM.
+    disk_size_gb = "20",
+    # Configuration IP de la VM. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    ipconfig0    = "",
+    # Utilisateur SSH pour accéder à la VM. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    ssh_user     = ""
 
-    ```bash
-    terraform init
-    ```
+  }
+}
+# Configuration des noeuds worker
+kubernetes_worker_node = {
+  "worker" : {
+    # Nom de la machine virtuelle (VM) des workers Kubernetes.
+    name         = "k8s-node",
+    # Description de la configuration des workers Kubernetes.
+    description  = "Kubernetes Nodes configuration",
+    # Hôte Proxmox où la VM sera créée. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    host         = "",
+    # Nom du template de base utilisé pour cloner la VM.
+    clone        = "debian-base-pkr",
+    # Nombre de cœurs CPU attribués à la VM.
+    cpu_core     = "2",
+    # Nombre de sockets CPU attribués à la VM.
+    cpu_socket   = "4",
+    # Quantité de mémoire (en Mo) attribuée à la VM.
+    memory_mb    = "16384",
+    # Taille du disque (en Go) attribué à la VM.
+    disk_size_gb = "20",
+    # Configuration IP de la VM. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    ipconfig0    = "",
+    # Utilisateur SSH pour accéder à la VM. Cette valeur est surchargée par les valeur dans vars/vars.yaml
+    ssh_user     = ""
+  }
+}
+```
 
-2. **Appliquer la Configuration** :
-
-    ```bash
-    terraform apply
-    ```
+---
 
 ## Utilisation avec un container Terraform
+
+Il est recommandé de générer une image docker avec [le dockerfile fournit](./docker/Dockerfile). Cette image inclus l'ensemble des éléments et configurations de l'environnement de travail. La documentation détaillée liée à cette partie est disponible [ici](./docker/README.md) 
+
+Le diagramme suivant représente l'utilisation recommandé du module: 
+```mermaid
+graph TD;
+ 
+    A[DOCKERFILE] -->|Build| C[Docker Image terraform +@deps]
+    C -->|Use| B[IASC]
+    B --> |Générate| D[Image packer]
+    B --> |Provision| E[Proxmox VMs] 
+    B --> |Configure| F[Kubernetes Cluster]
+    D --> |create| E
+    E --> |Run| F 
+```
 
 ### Construire l'Image Docker :
 
@@ -130,6 +198,23 @@ Cette commande affichera la version de Terraform pour vérifier que tout est cor
     docker run --rm --network host -v $(pwd)/:/workspace -w /workspace terraform-container apply --auto-approve
     ```
 Cette commande provisionnera les VMs sur Proxmox en utilisant les paramètres définis dans le fichier YAML.
+## Utilisation avec Terraform
+
+Dans le cas d'utilisateurs plus avancé, je vous invite a consulté [la documentation du code terraform](./kubernetes_cluster/README.md). Elle indique l'ensemble des prérequis nécessaire a l'utilisation du module.
+
+### Initialiser et Appliquer Terraform
+
+1. **Initialiser Terraform** :
+
+    ```bash
+    terraform init
+    ```
+
+2. **Appliquer la Configuration** :
+
+    ```bash
+    terraform apply
+    ```
 
 ### Conclusion
 
