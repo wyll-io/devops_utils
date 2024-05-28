@@ -1,12 +1,10 @@
-
-
 # All the VM to build the Kubernetes cluster
 kubernetes_masters_node = {
   "master" : {
     name         = "k8s-master",
     description  = "Kubernetes Master Configuration",
     host         = "",
-    clone        = "debian-base",
+    clone        = "debian-base-pkr",
     cpu_core     = "2",
     cpu_socket   = "2",
     memory_mb    = "4096",
@@ -21,7 +19,7 @@ kubernetes_worker_node = {
     name         = "k8s-node",
     description  = "Kubernetes Nodes configuration",
     host         = "",
-    clone        = "debian-base",
+    clone        = "debian-base-pkr",
     cpu_core     = "2",
     cpu_socket   = "4",
     memory_mb    = "16384",

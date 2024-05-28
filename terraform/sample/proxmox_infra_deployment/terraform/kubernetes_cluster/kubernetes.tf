@@ -18,7 +18,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   scsihw                 = "virtio-scsi-pci"
   target_node            = each.value.proxmox_node
   ipconfig0              = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                  = "debian-base-pkr"
+  clone                  = var.kubernetes_master_node.master.clone
   define_connection_info = true
   ssh_user               = local.GENERAL.VM_SSH_USER
   sshkeys                = local.GENERAL.VM_SSH_KEYS
@@ -68,7 +68,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   scsihw                 = "virtio-scsi-pci"
   target_node            = each.value.proxmox_node
   ipconfig0              = "ip=${each.value.ip}/${each.value.ip_param}"
-  clone                  = "debian-base-pkr"
+  clone                  = var.kubernetes_worker_node.worker.clone
   define_connection_info = true
   ssh_user               = local.GENERAL.VM_SSH_USER
   sshkeys                = local.GENERAL.VM_SSH_KEYS
