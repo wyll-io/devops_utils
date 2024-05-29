@@ -1,5 +1,5 @@
 # All the VM to build the Kubernetes cluster
-kubernetes_masters_node = {
+kubernetes_master_node = {
   "master" : {
     name         = "k8s-master",
     description  = "Kubernetes Master Configuration",
