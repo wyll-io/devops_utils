@@ -40,7 +40,8 @@ resource "null_resource" "packer_image_creation" {
   depends_on = [local_file.debian_preseed, local_file.marker]
   for_each   = local.NODES
   triggers = {
-    always_run = "${timestamp()}"
+    file_hash  = filesha256("vars/vars.yaml")
+    debian_base_pkr_hash  = filesha256("./packer/debian_base.pkr.hcl")
   }
 
   provisioner "local-exec" {
