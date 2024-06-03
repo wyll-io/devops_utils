@@ -96,9 +96,20 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   }
 }
 
+resource "null_resource" "ansible_directory" {
+  depends_on = [proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
+  triggers = {
+  file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists" }
+  provisioner "local-exec" {
+    command = "mkdir -p ./ansible/playbooks/kubespray/inventory/${each.key}"
+  }
+  provisioner "local-exec" {
+    command = "cp -r ./ansible/playbooks/kubespray/inventory/sample/* ./ansible/playbooks/kubespray/inventory/${each.key}/."
+  }
+}
 
 resource "local_file" "ansible_inventory" {
-  filename = "./ansible/playbooks/kubespray/inventory/mucluster/inventory.ini"
+  filename = "./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini"
   content = templatefile("./templates/inventory.tpl", {
     master_nodes = [for vm in proxmox_vm_qemu.kubernetes_masters : vm.ssh_host]
     worker_nodes = [for vm in proxmox_vm_qemu.kubernetes_workers : vm.ssh_host]
@@ -109,7 +120,7 @@ resource "local_file" "ansible_inventory" {
 resource "null_resource" "kubernetes_cluster_creation" {
   depends_on = [local_file.ansible_inventory, proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
   triggers = {
-    file_exist  = fileexists("./ansible/playbooks/kubespray/inventory/mycluster/artifacts/admin.conf") ? "exists" : "not_exists"
+    file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists"
   }
   provisioner "local-exec" {
     working_dir = "./ansible/playbooks/kubespray/"
@@ -122,6 +133,6 @@ resource "null_resource" "kubernetes_cluster_creation" {
       ANSIBLE_BECOME_USER       = "root"
       ANSIBLE_BECOME_PASSWORD   = random_password.root_password.result
     }
-    command = "ansible-playbook -i inventory/mycluster/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root cluster.yml"
+    command = "ansible-playbook -i inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root cluster.yml"
   }
 }

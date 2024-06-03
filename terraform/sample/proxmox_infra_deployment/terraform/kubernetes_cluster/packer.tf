@@ -40,8 +40,8 @@ resource "null_resource" "packer_image_creation" {
   depends_on = [local_file.debian_preseed, local_file.marker]
   for_each   = local.NODES
   triggers = {
-    file_hash  = filesha256("vars/vars.yaml")
-    debian_base_pkr_hash  = filesha256("./packer/debian_base.pkr.hcl")
+    data_hash            = sha256(join(",", [local.BASE_IMAGE.ISO_URL, local.BASE_IMAGE.ISO_CHECKSUM]))
+    debian_base_pkr_hash = filesha256("./packer/debian_base.pkr.hcl")
   }
 
   provisioner "local-exec" {
@@ -54,7 +54,11 @@ resource "null_resource" "packer_image_creation" {
       proxmox_node             = each.value.PROXMOX_NODE_NAME
       ssh_username             = local.GENERAL.VM_SSH_USER
       ssh_password             = random_password.user_password.result
-
+      cloud_init_storage_pool  = var.cloud_init_storage_pool
+      iso_url                  = local.BASE_IMAGE.ISO_URL
+      iso_checksum             = local.BASE_IMAGE.ISO_CHECKSUM
+      iso_storage_pool         = var.iso_storage_pool
+      vm_storage_class         = var.vm_storage_class
     }
     command = <<-EOF
     cd ./packer
@@ -66,7 +70,25 @@ resource "null_resource" "packer_image_creation" {
       -var "ssh_password=$ssh_password" \
       -var "ssh_username=$ssh_username" \
       -var "proxmox_node=$proxmox_node" \
+      -var "cloud_init_storage_pool=$cloud_init_storage_pool" \
+      -var "iso_storage_pool=$iso_storage_pool" \
+      -var "vm_storage_class=$vm_storage_class" \
+      -var "iso_url=$iso_url" \
+      -var "iso_checksum=$iso_checksum" \
       debian_base.pkr.hcl
+    
+    packer build \
+      -var "proxmox_api_url=$proxmox_api_url" \
+      -var "proxmox_api_token_id=$proxmox_api_token_id" \
+      -var "proxmox_api_token_secret=$proxmox_api_token_secret" \
+      -var "ssh_password=$ssh_password" \
+      -var "ssh_username=$ssh_username" \
+      -var "proxmox_node=$proxmox_node" \
+      -var "cloud_init_storage_pool=$cloud_init_storage_pool" \
+      -var "iso_storage_pool=$iso_storage_pool" \
+      -var "vm_storage_class=$vm_storage_class" \
+      k8s-base.pkr.hcl
+
     EOF
   }
   lifecycle {

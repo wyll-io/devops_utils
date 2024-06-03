@@ -4,7 +4,7 @@ kubernetes_master_node = {
     name         = "k8s-master",
     description  = "Kubernetes Master Configuration",
     host         = "",
-    clone        = "debian-base-pkr",
+    clone        = "kube-base-pkr",
     cpu_core     = "2",
     cpu_socket   = "2",
     memory_mb    = "4096",
@@ -19,7 +19,7 @@ kubernetes_worker_node = {
     name         = "k8s-node",
     description  = "Kubernetes Nodes configuration",
     host         = "",
-    clone        = "debian-base-pkr",
+    clone        = "kube-base-pkr",
     cpu_core     = "2",
     cpu_socket   = "4",
     memory_mb    = "16384",
@@ -29,3 +29,6 @@ kubernetes_worker_node = {
   }
 }
 
+cloud_init_storage_pool = "datastore"
+vm_storage_class        = "datastore"
+iso_storage_pool        = "local"

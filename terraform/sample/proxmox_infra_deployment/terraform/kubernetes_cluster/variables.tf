@@ -1,6 +1,7 @@
 locals {
-  NODES   = yamldecode(file("./vars/vars.yaml"))["NODES"]
-  GENERAL = yamldecode(file("./vars/vars.yaml"))["GENERAL"]
+  NODES      = yamldecode(file("./vars/vars.yaml"))["NODES"]
+  GENERAL    = yamldecode(file("./vars/vars.yaml"))["GENERAL"]
+  BASE_IMAGE = yamldecode(file("./vars/vars.yaml"))["BASE_IMAGE"]
   master_provision = flatten([
     for node in local.NODES : [
       for instance_count in range(1, node.K8S.MASTER_COUNT + 1) : {
@@ -65,6 +66,12 @@ variable "vm_nameserver" {
   default     = "8.8.8.8"
 }
 
+variable "vm_subnet_mask" {
+  type        = string
+  description = "Subnet mask of VMs "
+  default     = "24"
+}
+
 variable "vm_os_type" {
   type        = string
   description = "OS type"
@@ -77,16 +84,25 @@ variable "vm_storage_class" {
   default     = "datastore"
 }
 
+
+variable "cloud_init_storage_pool" {
+  type        = string
+  description = "Storage class "
+  default     = "datastore"
+}
+
+variable "iso_storage_pool" {
+  type        = string
+  description = "Storage class "
+  default     = "datastore"
+}
+
+
 # variable "vm_ssh_keys" {
 #   type        = string
 #   description = "SSH Keys"
 # }
 
-variable "vm_subnet_mask" {
-  type        = string
-  description = "Subnet mask of VMs "
-  default     = "24"
-}
 ######################################################
 ####################  KUBERNETES  ####################
 ######################################################
@@ -151,22 +167,5 @@ variable "kubernetes_worker_node" {
     }
   }
 }
-######################################################
-#######################  VAULT  ######################
-######################################################
 
-variable "vault_cluster" {
-  type = map(object({
-    name         = string
-    description  = string
-    host         = string
-    clone        = string
-    cpu_core     = string
-    cpu_socket   = string
-    memory_mb    = string
-    disk_size_gb = string
-    ipconfig0    = string
-    ssh_user     = string
-  }))
-  description = "all the VM for the Vault cluster"
-}
+
