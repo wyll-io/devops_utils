@@ -1,5 +1,5 @@
 resource "proxmox_vm_qemu" "kubernetes_masters" {
-  depends_on = [null_resource.packer_image_creation]
+  depends_on = [null_resource.k8s_base_image_creation]
   for_each = tomap({
     for provisionning in local.master_provision : "${provisionning.master_name}" => provisionning
   })
@@ -12,6 +12,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   sockets                = var.kubernetes_master_node.master.cpu_socket
   memory                 = var.kubernetes_master_node.master.memory_mb
   os_type                = var.vm_os_type
+  qemu_os                = "other"
   full_clone             = true
   agent                  = 1
   nameserver             = var.vm_nameserver
@@ -21,8 +22,8 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   clone                  = var.kubernetes_master_node.master.clone
   define_connection_info = true
   ssh_user               = local.GENERAL.VM_SSH_USER
-  sshkeys                = local.GENERAL.VM_SSH_KEYS
-  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
+  # sshkeys                = local.GENERAL.VM_SSH_KEYS
+  # ssh_private_key        = local.GENERAL.VM_SSH_KEYS
 
 
   disks {
@@ -50,7 +51,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
 }
 
 resource "proxmox_vm_qemu" "kubernetes_workers" {
-  depends_on = [null_resource.packer_image_creation]
+  depends_on = [null_resource.k8s_base_image_creation, proxmox_vm_qemu.kubernetes_masters]
   for_each = tomap({
     for provisionning in local.worker_provision : "${provisionning.worker_name}" => provisionning
   })
@@ -62,6 +63,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   sockets                = var.kubernetes_worker_node.worker.cpu_socket
   memory                 = var.kubernetes_worker_node.worker.memory_mb
   os_type                = var.vm_os_type
+  qemu_os                = "other"
   full_clone             = true
   agent                  = 1
   nameserver             = var.vm_nameserver
@@ -71,8 +73,8 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   clone                  = var.kubernetes_worker_node.worker.clone
   define_connection_info = true
   ssh_user               = local.GENERAL.VM_SSH_USER
-  sshkeys                = local.GENERAL.VM_SSH_KEYS
-  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
+  # sshkeys                = local.GENERAL.VM_SSH_KEYS
+#  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
 
   disks {
     virtio {
@@ -96,9 +98,22 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   }
 }
 
+resource "null_resource" "ansible_directory" {
+  depends_on = [proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
+  triggers = {
+  file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists"
+  }
+  provisioner "local-exec" {
+    command = "mkdir -p ./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}"
+  }
+  provisioner "local-exec" {
+    command = "cp -r ./ansible/playbooks/kubespray/inventory/sample/* ./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/."
+  }
+}
 
 resource "local_file" "ansible_inventory" {
-  filename = "./ansible/playbooks/kubespray/inventory/mucluster/inventory.ini"
+  depends_on = [null_resource.ansible_directory]
+  filename = "./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini"
   content = templatefile("./templates/inventory.tpl", {
     master_nodes = [for vm in proxmox_vm_qemu.kubernetes_masters : vm.ssh_host]
     worker_nodes = [for vm in proxmox_vm_qemu.kubernetes_workers : vm.ssh_host]
@@ -109,7 +124,7 @@ resource "local_file" "ansible_inventory" {
 resource "null_resource" "kubernetes_cluster_creation" {
   depends_on = [local_file.ansible_inventory, proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
   triggers = {
-    file_exist  = fileexists("./ansible/playbooks/kubespray/inventory/mycluster/artifacts/admin.conf") ? "exists" : "not_exists"
+    file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "not_exists" : "exists" 
   }
   provisioner "local-exec" {
     working_dir = "./ansible/playbooks/kubespray/"
@@ -122,6 +137,6 @@ resource "null_resource" "kubernetes_cluster_creation" {
       ANSIBLE_BECOME_USER       = "root"
       ANSIBLE_BECOME_PASSWORD   = random_password.root_password.result
     }
-    command = "ansible-playbook -i inventory/mycluster/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root cluster.yml"
+    command = "ansible-playbook -i inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini --extra-vars \"ansible_user=$ANSIBLE_USER ansible_password=$ANSIBLE_SSH_PASS ansible_become_user=$ANSIBLE_BECOME_USER ansible_become_password=$ANSIBLE_BECOME_PASSWORD\"  --become --become-user=root cluster.yml"
   }
 }

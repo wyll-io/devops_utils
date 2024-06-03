@@ -15,6 +15,7 @@ GENERAL:
   VM_SSH_USER: "<your ssh user>"
   # Clé SSH publique pour la connexion aux VMs
   VM_SSH_KEYS: "<your ssh key>"
+  CLUSTER_NAME: "mycluster"
 
 NODES: 
   TEST:
@@ -34,3 +35,7 @@ NODES:
       MASTER_COUNT: 3      
       # Nombre de nœuds de travail
       WORKER_COUNT: 3
+
+BASE_IMAGE:
+  ISO_URL: "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso"
+  ISO_CHECKSUM: "sha256:013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f"
