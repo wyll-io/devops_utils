@@ -29,6 +29,6 @@ kubernetes_worker_node = {
   }
 }
 
-cloud_init_storage_pool = "local-zfs"
-vm_storage_class        = "local-zfs"
+cloud_init_storage_pool = "datastore"
+vm_storage_class        = "datastore"
 iso_storage_pool        = "local"

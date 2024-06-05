@@ -124,7 +124,7 @@ resource "local_file" "ansible_inventory" {
 resource "null_resource" "kubernetes_cluster_creation" {
   depends_on = [local_file.ansible_inventory, proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
   triggers = {
-    file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "not_exists" : "exists" 
+    file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists"
   }
   provisioner "local-exec" {
     working_dir = "./ansible/playbooks/kubespray/"

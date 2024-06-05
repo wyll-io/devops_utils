@@ -104,9 +104,8 @@ resource "null_resource" "k8s_base_image_creation" {
     }
     command = <<-EOF
     cd ./packer
-    packer init k8s-base.pkr.hcl
-    
-    PACKER_LOG=debug packer build \
+    packer init k8s-base.pkr.hcl  
+    packer build \
       -var "proxmox_api_url=$proxmox_api_url" \
       -var "proxmox_api_token_id=$proxmox_api_token_id" \
       -var "proxmox_api_token_secret=$proxmox_api_token_secret" \
