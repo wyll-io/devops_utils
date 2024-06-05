@@ -30,7 +30,7 @@ variable "ssh_username" {
 
 variable "ssh_password" {
   type    = string
-  default = "admin"
+  default = ""
 }
 
 variable "proxmox_node" {
@@ -42,12 +42,6 @@ variable "cloud_init_storage_pool" {
   type        = string
   description = "Storage class "
   default     = "datastore"
-}
-
-variable "iso_storage_pool" {
-  type        = string
-  description = "Storage class "
-  default     = "local"
 }
 
 variable "vm_storage_class" {
@@ -70,7 +64,7 @@ source "proxmox-clone" "kube-base" {
   template_description = "Kubernetes Base Image"
 
   insecure_skip_tls_verify = true
-
+  task_timeout  = "5m"
   qemu_agent = true
 
   scsi_controller = "virtio-scsi-pci"
@@ -86,7 +80,7 @@ source "proxmox-clone" "kube-base" {
   vga {
     type = "virtio"
   }
-
+  
   network_adapters {
     model  = "virtio"
     bridge = "vmbr0"
@@ -102,17 +96,14 @@ source "proxmox-clone" "kube-base" {
 }
 
 build {
-  name = "kube_base_pkr"
-  sources = [
-    "source.proxmox-clone.kube-base"
-  ]
-  provisioner "shell" {
-    inline = [
-      "echo ${var.ssh_password} | sudo -S DEBIAN_FRONTEND=noninteractive apt update",
-      "echo ${var.ssh_password} | sudo -S DEBIAN_FRONTEND=noninteractive apt upgrade",
-      "echo ${var.ssh_password} | sudo swapoff -a",
-      "echo ${var.ssh_password} | sudo sed -i '/swap/d' /etc/fstab"
-    ]
-  }
+  sources = ["source.proxmox-clone.kube-base"  ]
+  # provisioner "shell" {
+  #   inline = [
+  #     "echo -n ${var.ssh_password} | sudo -S DEBIAN_FRONTEND=noninteractive apt update",
+  #     "echo -n ${var.ssh_password} | sudo -S DEBIAN_FRONTEND=noninteractive apt upgrade",
+  #     "echo -n ${var.ssh_password} | sudo -S swapoff -a",
+  #     "echo -n ${var.ssh_password} | sudo -S sed -i '/swap/d' /etc/fstab"
+  #   ]
+  # }
 
 }

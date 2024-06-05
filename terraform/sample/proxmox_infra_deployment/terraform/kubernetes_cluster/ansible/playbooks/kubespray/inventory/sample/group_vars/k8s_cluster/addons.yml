@@ -205,8 +205,8 @@ metallb_config:
 #       ip_range:
 #         - 10.10.0.0/16
 #       auto_assign: true
-#   layer2:
-#     - primary
+  layer2:
+    - primary
 #   layer3:
 #     defaults:
 #       peer_port: 179
