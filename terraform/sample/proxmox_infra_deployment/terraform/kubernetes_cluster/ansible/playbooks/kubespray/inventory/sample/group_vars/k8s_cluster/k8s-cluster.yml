@@ -126,7 +126,8 @@ kube_proxy_mode: ipvs
 
 # configure arp_ignore and arp_announce to avoid answering ARP queries from kube-ipvs0 interface
 # must be set to true for MetalLB, kube-vip(ARP enabled) to work
-kube_proxy_strict_arp: false
+#kube_proxy_strict_arp: false
+kube_proxy_strict_arp: true
 
 # A string slice of values which specify the addresses to use for NodePorts.
 # Values may be valid IP blocks (e.g. 1.2.3.0/24, 1.2.3.4/32).
@@ -245,6 +246,7 @@ default_kubelet_config_dir: "{{ kube_config_dir }}/dynamic_kubelet_dir"
 
 # Make a copy of kubeconfig on the host that runs Ansible in {{ inventory_dir }}/artifacts
 # kubeconfig_localhost: false
+kubeconfig_localhost: true
 # Use ansible_host as external api ip when copying over kubeconfig.
 # kubeconfig_localhost_ansible_host: false
 # Download kubectl onto the host that runs Ansible in {{ bin_dir }}
