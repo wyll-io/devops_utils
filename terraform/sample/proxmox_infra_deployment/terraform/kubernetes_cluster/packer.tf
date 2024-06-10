@@ -112,7 +112,6 @@ resource "null_resource" "k8s_base_image_creation" {
       -var "ssh_password=$ssh_password" \
       -var "ssh_username=$ssh_username" \
       -var "proxmox_node=$proxmox_node" \
-      -var "cloud_init_storage_pool=$cloud_init_storage_pool" \
       -var "vm_storage_class=$vm_storage_class" \
       k8s-base.pkr.hcl
 
