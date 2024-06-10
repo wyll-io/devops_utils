@@ -14,6 +14,7 @@ resource "proxmox_vm_qemu" "kubernetes_masters" {
   os_type                = var.vm_os_type
   qemu_os                = "other"
   full_clone             = true
+  onboot                 = true
   agent                  = 1
   nameserver             = var.vm_nameserver
   scsihw                 = "virtio-scsi-pci"
@@ -65,6 +66,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   os_type                = var.vm_os_type
   qemu_os                = "other"
   full_clone             = true
+  onboot                 = true
   agent                  = 1
   nameserver             = var.vm_nameserver
   scsihw                 = "virtio-scsi-pci"
@@ -74,7 +76,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
   define_connection_info = true
   ssh_user               = local.GENERAL.VM_SSH_USER
   # sshkeys                = local.GENERAL.VM_SSH_KEYS
-#  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
+  #  ssh_private_key        = local.GENERAL.VM_SSH_KEYS
 
   disks {
     virtio {
@@ -101,7 +103,7 @@ resource "proxmox_vm_qemu" "kubernetes_workers" {
 resource "null_resource" "ansible_directory" {
   depends_on = [proxmox_vm_qemu.kubernetes_masters, proxmox_vm_qemu.kubernetes_workers]
   triggers = {
-  file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists"
+    file_exist = fileexists("./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/artifacts/admin.conf") ? "exists" : "not_exists"
   }
   provisioner "local-exec" {
     command = "mkdir -p ./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}"
@@ -113,7 +115,7 @@ resource "null_resource" "ansible_directory" {
 
 resource "local_file" "ansible_inventory" {
   depends_on = [null_resource.ansible_directory]
-  filename = "./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini"
+  filename   = "./ansible/playbooks/kubespray/inventory/${local.GENERAL.CLUSTER_NAME}/inventory.ini"
   content = templatefile("./templates/inventory.tpl", {
     master_nodes = [for vm in proxmox_vm_qemu.kubernetes_masters : vm.ssh_host]
     worker_nodes = [for vm in proxmox_vm_qemu.kubernetes_workers : vm.ssh_host]

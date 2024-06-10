@@ -58,6 +58,7 @@ resource "null_resource" "debian_base_image_creation" {
     command = <<-EOF
     cd ./packer
     packer init debian_base.pkr.hcl
+    sleep $(( ( $(od -An -N1 -i /dev/urandom) % 15 ) + 1 ))
     packer build \
       -var "proxmox_api_url=$proxmox_api_url" \
       -var "proxmox_api_token_id=$proxmox_api_token_id" \
@@ -105,6 +106,7 @@ resource "null_resource" "k8s_base_image_creation" {
     command = <<-EOF
     cd ./packer
     packer init k8s-base.pkr.hcl  
+    sleep $(( ( $(od -An -N1 -i /dev/urandom) % 15 ) + 1 ))
     packer build \
       -var "proxmox_api_url=$proxmox_api_url" \
       -var "proxmox_api_token_id=$proxmox_api_token_id" \
@@ -112,7 +114,6 @@ resource "null_resource" "k8s_base_image_creation" {
       -var "ssh_password=$ssh_password" \
       -var "ssh_username=$ssh_username" \
       -var "proxmox_node=$proxmox_node" \
-      -var "cloud_init_storage_pool=$cloud_init_storage_pool" \
       -var "vm_storage_class=$vm_storage_class" \
       k8s-base.pkr.hcl
 

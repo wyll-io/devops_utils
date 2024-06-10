@@ -38,12 +38,6 @@ variable "proxmox_node" {
   default = ""
 }
 
-variable "cloud_init_storage_pool" {
-  type        = string
-  description = "Storage class "
-  default     = "datastore"
-}
-
 variable "vm_storage_class" {
   type        = string
   description = "Storage class"
@@ -64,8 +58,8 @@ source "proxmox-clone" "kube-base" {
   template_description = "Kubernetes Base Image"
 
   insecure_skip_tls_verify = true
-  task_timeout  = "5m"
-  qemu_agent = true
+  task_timeout             = "5m"
+  qemu_agent               = true
 
   scsi_controller = "virtio-scsi-pci"
 
@@ -74,13 +68,10 @@ source "proxmox-clone" "kube-base" {
   sockets  = "1"
   memory   = "2048"
 
-  cloud_init              = true
-  cloud_init_storage_pool = var.cloud_init_storage_pool
-
   vga {
     type = "virtio"
   }
-  
+
   network_adapters {
     model  = "virtio"
     bridge = "vmbr0"
@@ -96,7 +87,7 @@ source "proxmox-clone" "kube-base" {
 }
 
 build {
-  sources = ["source.proxmox-clone.kube-base"  ]
+  sources = ["source.proxmox-clone.kube-base"]
   # provisioner "shell" {
   #   inline = [
   #     "echo -n ${var.ssh_password} | sudo -S DEBIAN_FRONTEND=noninteractive apt update",
