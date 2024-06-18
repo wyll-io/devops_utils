@@ -38,6 +38,36 @@ variable "proxmox_node" {
   default = ""
 }
 
+variable "cloud_init_storage_pool" {
+  type        = string
+  description = "Storage class "
+  default     = "datastore"
+}
+
+variable "iso_storage_pool" {
+  type        = string
+  description = "Storage class "
+  default     = "local"
+}
+
+variable "vm_storage_class" {
+  type        = string
+  description = "Storage class"
+  default     = "datastore"
+}
+
+variable "iso_url" {
+  type        = string
+  description = "Url de l'iso"
+  default     = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso"
+}
+
+variable "iso_checksum" {
+  type        = string
+  description = "Storage class"
+  default     = "sha256:013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f"
+}
+
 source "proxmox-iso" "debian-cloud" {
   proxmox_url = var.proxmox_api_url
   username    = var.proxmox_api_token_id
@@ -49,9 +79,9 @@ source "proxmox-iso" "debian-cloud" {
 
   insecure_skip_tls_verify = true
 
-  iso_url          = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso"
-  iso_checksum     = "sha256:013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f"
-  iso_storage_pool = "local"
+  iso_url          = var.iso_url
+  iso_checksum     = var.iso_checksum
+  iso_storage_pool = var.iso_storage_pool
   unmount_iso      = true
   qemu_agent       = true
 
@@ -63,7 +93,7 @@ source "proxmox-iso" "debian-cloud" {
   memory   = "2048"
 
   cloud_init              = true
-  cloud_init_storage_pool = "datastore"
+  cloud_init_storage_pool = var.cloud_init_storage_pool
 
   vga {
     type = "virtio"
@@ -72,7 +102,7 @@ source "proxmox-iso" "debian-cloud" {
   disks {
     disk_size    = "20G"
     format       = "raw"
-    storage_pool = "datastore"
+    storage_pool = var.vm_storage_class
     type         = "virtio"
   }
 
