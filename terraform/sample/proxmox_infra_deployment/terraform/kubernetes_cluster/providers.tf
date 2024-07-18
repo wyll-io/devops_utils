@@ -4,7 +4,7 @@ provider "proxmox" {
   pm_api_url          = local.GENERAL.PM_API_URL
   pm_api_token_id     = local.GENERAL.PM_API_TOKEN_ID
   pm_api_token_secret = local.GENERAL.PM_API_TOKEN_SECRET
-  pm_parallel         = 1
+  pm_parallel         = 3
 }
 
 provider "kubernetes" {

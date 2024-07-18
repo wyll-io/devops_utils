@@ -49,6 +49,9 @@ GENERAL:
   
   # Clé SSH publique pour la connexion aux VMs
   VM_SSH_KEYS: "<your ssh key>"
+
+  # Le nom attribué au cluster Proxmox.
+  CLUSTER_NAME: "mycluster"
 ```
 
 ### Section NODES
@@ -81,6 +84,21 @@ NODES:
       # Nombre de nœuds de travail
       WORKER_COUNT: 3
 ```
+
+
+### Section BASE_IMAGE
+
+La section `BASE_IMAGE` définit les paramètres de l'image ISO utilisé par défault pour la création des VMs.
+
+```yaml
+BASE_IMAGE:
+  # URL de téléchargement de l'image ISO utilisée pour créer les VMs.
+  ISO_URL: "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso"
+  # Checksum de l'ISO pour vérification de l'intégrité de l'ISO téléchargée.
+  ISO_CHECKSUM: "sha256:013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f"
+```
+
+
 
 ## Compléter le Fichier  `vars/vars.yaml`
 
