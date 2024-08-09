@@ -44,7 +44,27 @@ Pour mettre en œuvre les configurations décrites, les prérequis suivants doiv
 ## Schéma de Fonctionnement
 
 Ce schéma illustre comment Terraform interagit avec l'API Proxmox pour provisionner des ressources de manière automatisée :
+```mermaid
+flowchart TB;
 
+    A{Terraform commands} -->|run| B[Packer commands]
+    B -->|request|C[proxmox api]
+    C -->|Create|D[Debian base image]
+    A -->|Run|E[packer commands]
+    D --> |Is used for creating| E
+    E --> |request|F[Proxmox API]
+    F -->|Create|G[socle image]
+    A -->|Load|H[Template files]
+    H -->|Generate|I[apps Config files]
+    I --> E
+    H -->|Generate|J[Loadbalancers config file]
+    A -->|Request|K[Proxmox API]
+    K -->|Deploy|L[Vm socle]
+    J -->|Configure|L
+    G -->|Is used for creating|L
+     
+```
+exemple de CICD
 ```mermaid
 flowchart TB;
 A[Terraform files] -->|Merge Request| B(GitLab Repository);
